@@ -31,6 +31,9 @@ jobs:
           ENVIRONMENT: 'dev'
       - name: Check build nextjs-utils
         run: cd nextjs-utils && yarn build && cd ..
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENVIRONMENT: 'dev'
       - name: Clean up
         if: always()
         run: npm uninstall -g yarn
