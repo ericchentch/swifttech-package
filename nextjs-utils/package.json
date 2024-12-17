@@ -7,6 +7,9 @@
     "build": "rm -rf dist && rollup -c --bundleConfigAsCjs",
     "update-version": "node -r dotenv/config ./auto-update-version.js"
   },
+  "repository": {
+    "url": "https://github.com/ericchentch/swifttech-package"
+  },
   "author": "Eric Tran",
   "license": "ISC",
   "dependencies": {
