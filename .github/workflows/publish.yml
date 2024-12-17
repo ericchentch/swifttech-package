@@ -1,0 +1,42 @@
+name: Publish to npmjs
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish-nextjs-utils:
+    runs-on: [ swifttech-package,self-hosted ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - name: Install yarn
+        run: npm install -g yarn
+      - name: Install packages
+        run: yarn install-all
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENVIRONMENT: 'dev'
+      - name: Check build nextjs-utils
+        run: cd nextjs-utils && yarn build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENVIRONMENT: 'dev'
+      - name: Publish nextjs-utils
+        run: cd nextjs-utils && node ./auto-update-version.js && npm publish --provenance --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENVIRONMENT: 'dev'
+      - name: Clean up
+        if: always()
+        run: npm uninstall -g yarn
