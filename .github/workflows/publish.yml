@@ -24,8 +24,14 @@ jobs:
         run: npm install -g yarn
       - name: Install packages
         run: yarn install-all
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENVIRONMENT: 'dev'
       - name: Check build nextjs-utils
         run: cd nextjs-utils && yarn build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENVIRONMENT: 'dev'
       - name: Publish nextjs-utils
         run: node ./auto-update-version.js && npm publish --provenance --access=public
         env:
