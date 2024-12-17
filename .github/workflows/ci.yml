@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   check-convention:
-    runs-on: [ swifttech-package ]
+    runs-on: [ swifttech-package,self-hosted ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
