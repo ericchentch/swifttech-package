@@ -22,7 +22,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "20"
+      - name: Install yarn
+        run: npm install -g yarn
       - name: Check script
         run: yarn install-all && yarn check-format && yarn check-lint && yarn check-types && yarn build
       - name: Check build nextjs-utils
         run: cd nextjs-utils && yarn build && cd ..
+      - name: Clean up
+        if: always()
+        run: npm uninstall -g yarn
