@@ -26,6 +26,9 @@ jobs:
         run: npm install -g yarn
       - name: Check script
         run: yarn install-all && yarn check-format && yarn check-lint && yarn check-types && yarn build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENVIRONMENT: 'dev'
       - name: Check build nextjs-utils
         run: cd nextjs-utils && yarn build && cd ..
       - name: Clean up
