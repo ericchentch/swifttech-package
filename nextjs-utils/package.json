@@ -1,5 +1,5 @@
 {
-  "name": "nextjs-utils",
+  "name": "@swifttechvn/next-utils",
   "version": "1.0.0",
   "description": "Function kit for colop team",
   "scripts": {
@@ -44,5 +44,8 @@
   "types": "dist/index.d.ts",
   "resolutions": {
     "rollup": "4.24.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
