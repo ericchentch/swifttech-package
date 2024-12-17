@@ -33,7 +33,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           ENVIRONMENT: 'dev'
       - name: Publish nextjs-utils
-        run: node ./auto-update-version.js && npm publish --provenance --access=public
+        run: cd nextjs-utils && node ./auto-update-version.js && npm publish --provenance --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           ENVIRONMENT: 'dev'
