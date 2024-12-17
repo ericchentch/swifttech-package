@@ -1,0 +1,178 @@
+stages:
+  - check-convention
+  - build
+  - deploy
+  - check-rollup-nextjs-utils
+  - publish-nextjs-utils
+
+cache:
+  - key: root
+    paths:
+      - node_modules/
+      - nextjs-utils/node_modules/
+      - nextjs-utils/dist/
+    policy: pull
+
+install-dependencies:
+  image: node:20-alpine
+  stage: .pre
+  except:
+    refs:
+      - develop
+  cache:
+    - key: root
+      paths:
+        - node_modules/
+        - nextjs-utils/node_modules/
+        - nextjs-utils/dist/
+      policy: pull-push
+
+  script:
+    - yarn install-all
+
+
+check-types:
+  image: node:20-alpine
+  stage: check-convention
+  needs: [ 'install-dependencies' ]
+  when: on_success
+  except:
+    refs:
+      - develop
+  script:
+    - yarn check-types
+
+check-lint:
+  image: node:20-alpine
+  stage: check-convention
+  needs: [ 'check-types']
+  when: on_success
+  except:
+    refs:
+      - develop
+  script:
+    - yarn check-lint
+
+check-format:
+  image: node:20-alpine
+  stage: check-convention
+  needs: [ 'check-lint']
+  when: on_success
+  except:
+    refs:
+      - develop
+  script:
+    - yarn check-format
+
+check-build:
+  image: node:20-alpine
+  stage: build
+  needs: ['check-types', 'check-lint', 'check-format']
+  when: on_success
+  except:
+    refs:
+      - develop
+  script:
+    - yarn prisma generate
+    - yarn build
+
+check-rollup-nextjs-utils:
+  image: node:latest
+  stage: check-rollup-nextjs-utils
+  tags:
+    - nextjs_utils
+  # needs:
+  #   - job: check-build
+  # when: on_success
+  script:
+    - yarn build-nextjs-utils
+  only:
+    changes:
+      - nextjs-utils/**/*
+      - .gitlab-ci.yml
+    refs:
+      - develop
+      - main
+
+
+publish-nextjs-utils-dev:
+  image: node:latest
+  stage: publish-nextjs-utils
+  needs:
+    - job: check-rollup-nextjs-utils
+  when: on_success
+  tags:
+    - nextjs-utils
+  variables:
+    ENVIRONMENT: "dev"
+  script:
+    - yarn build-nextjs-utils
+    - yarn update-version-nextjs-utils
+    - cd nextjs-utils
+    - npm config set -- //package.swifttech.vn/:_authToken=$NPM_AUTH_TOKEN
+    - yarn config set registry https://package.swifttech.vn/
+    - yarn publish
+  only:
+    changes:
+      - nextjs-utils/**/*
+      - .gitlab-ci.yml
+    refs:
+      - develop
+
+publish-nextjs-utils:
+  image: node:latest
+  stage: publish-nextjs-utils
+  tags:
+    - nextjs_utils
+  needs:
+    - job: check-rollup-nextjs-utils
+  when: on_success
+  script:
+    - yarn build-nextjs-utils
+    - yarn update-version-nextjs-utils
+    - cd nextjs-utils
+    - npm config set -- //package.swifttech.vn/:_authToken=$NPM_AUTH_TOKEN
+    - yarn config set registry https://package.swifttech.vn/
+    - yarn publish
+  only:
+    changes:
+      - nextjs-utils/**/*
+      - .gitlab-ci.yml
+    refs:
+      - main
+
+deploy-dev:
+  stage: deploy
+  # needs: ['check-build']
+  # when: on_success
+  tags:
+    - deploy
+  only:
+    changes:
+      - src/**/*
+      - public/**/*
+      - server-functions/**/*
+      - prisma/**/*
+      - .gitlab-ci.yml
+      - commands/**/*
+      - nextjs-utils/**/*
+      - cronjob/**/*
+    refs:
+      - develop
+  before_script:
+    - 'command -v ssh-agent >/dev/null || ( apk add --update-version openssh )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $VM_IPADDRESS >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh $SSH_USER@$VM_IPADDRESS -tt "cd /root/sale-service 
+      && git config --global --add safe.directory /root/sale-service 
+      && git reset --hard 
+      && git checkout develop && git reset --hard 
+      && git pull --rebase 
+      && docker system prune -a -f --volumes 
+      && docker compose -f docker-compose.dev.yml up -d --build"
+

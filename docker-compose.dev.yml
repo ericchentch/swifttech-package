@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+
+
+  kanban-service-db:
+    container_name: kanban-service-db
+    image: postgres:14
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Espot168
+      - POSTGRES_DB=init
+    ports:
+      - 5432:5432
+    volumes:
+      - kanban-service-db:/data/postgres
+    networks:
+      - kanban-net
+
+
+  kanban-admin-service:
+    container_name: kanban-admin-service
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=postgresql://postgres:Espot168@kanban-service-db:5432/kanbanadmindev?schema=public&connect_timeout=3000
+        - RESEND_API_KEY=TOKEN_EMAIL_KANBAN
+        - SECRET_USER_KEY=yourTokenSecret
+        - INIT_ADMIN_PASSWORD=Espot@168
+        - INIT_ADMIN_USERNAME=admin
+        - INIT_ADMIN_EMAIL=ericchen.tch@gmail.com
+        - EMAIL_SYSTEM=Dev email <dev-admin@kanban.vn>
+        - DEFAULT_KANBAN_INFO_PASSWORD=Espot@168
+        - DEFAULT_KANBAN_ADMIN_USERNAME=admin
+        - DEFAULT_KANBAN_ADMIN_EMAIL=dev-admin@kanban.vn
+        - DEFAULT_KANBAN_ADMIN_PASSWORD=Espot@168
+        - DEFAULT_VPS_EMAIL=ericchen.tch@gmail.com
+        - DEFAULT_PASS_VPS=Espot@168
+        - GITLAB_READ_TOKEN=glpat-66xfBS3BbwYnKsTHzB5c
+        - MONGO_USERNAME=root
+        - MONGO_PASSWORD=Espot168
+        - MAIL_URL=https://ses.kanban.vn/api/send-email
+        - EMAIL_NOTI=Kanban dev notification <noreply-dev@kanban.vn>
+        - KANBAN_CLOUDFLARE_ZONE_ID=a1f6aca256392e1626e10d6c7fb40cfb
+        - API_CLOUDFLARE=https://api.cloudflare.com/client/v4
+        - CLOUDFLARE_TOKEN=kIj1F9VdUxjIY0rsv-5bXTiQ1BScYQ51MgJ-X5jl
+        - VIETQR_API_URL=https://api.vietqr.io/v2/generate
+        - VIETQR_BANK_ACCOUNT_NUMBER=36511187
+        - VIETQR_BANK_ACCOUNT_NAME="TRAN VIET HAI LINH"
+        - VIETQR_BANK_ACQID=970416
+        - VIETQR_CLIENT_ID=b57c86f4-6047-4603-8898-99c2582cd0d8
+        - VIETQR_API_KEY=4aefbe65-29f3-4dfb-a0bc-3bcc192fa31b
+        - VIETQR_TEMPLATE=qr_only
+        - DOMAIN=https://admindev.kanban.vn
+        - NEXT_PUBLIC_CAPTCHA_SITE_KEY=6LcBY_8pAAAAAJ1ij7gFdg3TyFpoatJwUE7TwKzY
+        - CAPTCHA_SECRET_KEY_NEW=6LcBY_8pAAAAABWoEiNQoUhpyx-8BOY12euSUCY0
+        - HOST_GITLAB=https://git.swifttech.vn
+        - GITLAB_PERSONAL_ACCESS_TOKEN="glpat-zuECWgVrUVS8BP4cimGC"
+        - PROJECT_ID=1
+        - REPOSITORY_ID=3
+        - EMAIL_BANK_ACCOUNT=newstarts2001@gmail.com
+        - EMAIL_PASS_BANK_ACCOUNT=cproxfbzvwnyobwb
+        - OUTBOUND_TOKEN="token"
+        - ENV="-dev"
+        - EVENT_SERVICE_TOKEN=token_dev
+        - EVENT_SERVICE_URL=https://event.kanban.vn
+        - NEXT_PUBLIC_INTEGRATION_BOT_TELEGRAM="@SwifttechCongviec_bot"
+    ports:
+      - 3000:3000
+    networks:
+      - kanban-net
+    depends_on:
+      - kanban-service-db
+
+volumes:
+  kanban-service-db:
+    driver: local
+  kanban-admin-service:
+    driver: local
+
+networks:
+  kanban-net:
+    driver: bridge
+
