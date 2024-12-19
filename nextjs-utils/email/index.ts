@@ -1,72 +1,23 @@
-import axios from 'axios'
+import nodemailer from 'nodemailer'
 
-export const sendEmail = async ({
-  content,
-  to,
-  from,
-  subject,
-  RESEND_API_KEY,
-}: {
-  content: string
-  to: string[]
-  from: string
-  subject: string
-  RESEND_API_KEY: string
-}) => {
-  const res = await axios.post(
-    'https://ses.kanban.vn/api/send-email',
+export const sendEmail = async (
+  mailerConfig: any,
+  emailProp: {
+    body: string
+    to: string[]
+    subject: string
+    from: string
+  }
+) => {
+  const transporter = nodemailer.createTransport({ ...mailerConfig })
+  const { to, subject, from, body } = emailProp
+  await transporter.sendMail(
+    // mail options
     {
-      from,
-      to,
+      from, // replace with your own address
+      to, // replace with your own address
       subject,
-      body: content,
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        token: `${RESEND_API_KEY}`,
-      },
+      html: body || '',
     }
   )
-  if (res.status === 200) {
-    return true
-  }
-  return false
-}
-
-export const sendEmailWithTemplate = async ({
-  template,
-  to,
-  from,
-  subject,
-  templateInput,
-  RESEND_API_KEY,
-}: {
-  template: 'reset-password' | 'verify-email' | 'invitation' | 'two-fa'
-  to: string[]
-  from: string
-  subject: string
-  templateInput: string
-  RESEND_API_KEY: string
-}) => {
-  const res = await axios.post(
-    'https://ses.kanban.vn/api/send-template',
-    {
-      template,
-      to,
-      subject,
-      from,
-      templateInput,
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        token: `${RESEND_API_KEY}`,
-      },
-    }
-  )
-  if (res.status === 200) {
-    return true
-  }
-  return false
 }
